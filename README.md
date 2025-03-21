@@ -1,13 +1,5 @@
-1. Install Necessary Packages
-Ensure the required packages for FastAPI, requests, BeautifulSoup, and environment handling are installed:
-
-bash
-Copy
-Edit
 pip install python-dotenv fastapi requests beautifulsoup4
-2. Create the .env File
-Create a .env file to securely store sensitive data like API keys and private keys:
-
+Create the .env File
 ini
 Copy
 Edit
@@ -18,7 +10,10 @@ INFURA_URL=https://rinkeby.infura.io/v3/your_infura_project_id
 PRIVATE_KEY=your_private_key
 ETHERSCAN_API_KEY=your_etherscan_api_key
 QUICKNODE_URL=https://example.quicknode.com/api
-3. Python Script (app.py) - FastAPI Integration
+bash
+Copy
+Edit
+pip install python-dotenv fastapi requests beautifulsoup4
 This script integrates FastAPI with XML scraping, token balance retrieval, and Ethereum deployment.
 
 python
