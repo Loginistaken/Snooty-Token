@@ -1,5 +1,117 @@
 pip install python-dotenv fastapi requests beautifulsoup4
-Create the .env File
+solidity
+Copy
+Edit
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity ^0.8.0;
+
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+contract SnootyToken is ERC20, Ownable {
+    uint256 public burnRate = 2; // 2% burn rate
+    uint256 public maintenanceFeeRate = 1; // 0.01% maintenance fee rate
+    uint256 public teamProfitRate = 1; // 0.01% of the burn amount goes to the team
+
+    // Define initial minting
+    uint256 public constant TOTAL_SUPPLY = 64000000 * 10 ** decimals();
+    uint256 public constant OWNER_MINT = 1000000 * 10 ** decimals();
+    
+    address public teamAddress;
+
+    constructor(address _teamAddress) ERC20("Snooty Token", "SFT") {
+        _mint(msg.sender, OWNER_MINT); // Mint 1,000,000 tokens to the owner
+        _mint(address(this), TOTAL_SUPPLY - OWNER_MINT); // Mint the remaining tokens to the contract itself
+        teamAddress = _teamAddress;
+    }
+
+    // Override the transfer function to include the burn, maintenance, and team profit logic
+    function _transfer(address sender, address recipient, uint256 amount) internal override {
+        uint256 burnAmount = (amount * burnRate) / 100; // 2% burn
+        uint256 maintenanceFee = (amount * maintenanceFeeRate) / 10000; // 0.01% maintenance fee
+        uint256 teamProfit = (burnAmount * teamProfitRate) / 10000; // 0.01% team profit from burn
+
+        uint256 totalFee = burnAmount + maintenanceFee + teamProfit;
+
+        require(amount > totalFee, "Transfer amount exceeds fee");
+
+        // Burn the tokens
+        _burn(sender, burnAmount);
+        
+        // Send maintenance fee to contract owner (or other designated address)
+        _transfer(sender, owner(), maintenanceFee);
+
+        // Send team profit to the team address
+        _transfer(sender, teamAddress, teamProfit);
+
+        // Perform the transfer with the reduced amount
+        super._transfer(sender, recipient, amount - totalFee);
+    }
+
+    // Function to allow owner to update the burn rate
+    function updateBurnRate(uint256 newBurnRate) external onlyOwner {
+        require(newBurnRate <= 100, "Burn rate cannot exceed 100%");
+        burnRate = newBurnRate;
+    }
+
+    // Function to allow owner to update maintenance fee rate
+    function updateMaintenanceFeeRate(uint256 newMaintenanceFeeRate) external onlyOwner {
+        require(newMaintenanceFeeRate <= 100, "Maintenance fee rate cannot exceed 100%");
+        maintenanceFeeRate = newMaintenanceFeeRate;
+    }
+
+    // Function to allow owner to update team address
+    function updateTeamAddress(address newTeamAddress) external onlyOwner {
+        teamAddress = newTeamAddress;
+    }
+}
+javascript
+Copy
+Edit
+const hre = require("hardhat");
+
+async function main() {
+  // Replace with the actual address of the team
+  const teamAddress = "0xYourTeamAddressHere";
+
+  const [deployer] = await hre.ethers.getSigners();
+
+  console.log("Deploying contracts with the account:", deployer.address);
+
+  const SnootyToken = await hre.ethers.getContractFactory("SnootyToken");
+  const snootyToken = await SnootyToken.deploy(teamAddress);
+
+  console.log("Snooty Token deployed to:", snootyToken.address);
+
+  // Optionally, mint more tokens or interact with the contract
+}
+
+main()
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
+bash
+Copy
+Edit
+npm install --save-dev hardhat @openzeppelin/contracts ethers dotenv
+bash
+Copy
+Edit
+npx hardhat init
+bash
+Copy
+Edit
+npx hardhat compile
+bash
+Copy
+Edit
+npx hardhat run scripts/deploy.js --network <network-name>
+bash
+Copy
+Edit
+npx hardhat console --network <network-name>
 ini
 Copy
 Edit
@@ -9,7 +121,6 @@ AWS_SECRET_ACCESS_KEY=your_aws_secret_access_key
 INFURA_URL=https://rinkeby.infura.io/v3/your_infura_project_id
 PRIVATE_KEY=your_private_key
 ETHERSCAN_API_KEY=your_etherscan_api_key
-deployment:
 python
 Copy
 Edit
@@ -19,10 +130,13 @@ import requests
 from bs4 import BeautifulSoup
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
+
 # Load environment variables from the .env file
 load_dotenv()
+
 # Initialize FastAPI app
 app = FastAPI()
+
 # Example route to fetch token balance
 @app.get("/token_balance/{address}")
 async def get_token_balance(address: str):
@@ -79,30 +193,16 @@ async def deploy_contract():
         return JSONResponse(content={"transaction": transaction})
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
+
 # uvicorn app:app --reload
-Explanation:
-Environment Variables: The .env file is loaded using python-dotenv, so you don’t have to hard-code sensitive information in your script.
-FastAPI Setup: You have routes set up to:
-Retrieve token balance using the Infura API.
-Scrape data using BeautifulSoup from a URL.
-Deploy a contract (simplified example).
-Running the FastAPI app: To run the app, use uvicorn:
 bash
 Copy
 Edit
 uvicorn app:app --reload
-Next Steps:
-Make sure to install uvicorn if you haven’t already:
 bash
 Copy
 Edit
 pip install uvicorn
-bash
-Copy
-Edit
-pip install python-dotenv fastapi requests beautifulsoup4
-This script integrates FastAPI with XML scraping, token balance retrieval, and Ethereum deployment.
-
 python
 Copy
 Edit
@@ -153,99 +253,10 @@ def get_balance(address: str):
     # Placeholder: Replace with actual call to get ERC-20 token balance
     balance = 1000  # Example balance
     return {"balance": balance}
-4. Run the FastAPI App
-To run the FastAPI app, save the script as app.py and run:
-
-bash
-Copy
-Edit
-uvicorn app:app --reload
-This will start the FastAPI server on http://127.0.0.1:8000.
-
-5. AWS Lambda Integration for Secret Management & Scraping
-Here’s an example Lambda function to manage secrets and scrape data:
-
-python
-Copy
-Edit
-import os
-import requests
-from bs4 import BeautifulSoup
-
-def lambda_handler(event, context):
-    # Scrape a webpage to extract a secret
-    url = "https://example.com/profile"
-    response = requests.get(url)
-    soup = BeautifulSoup(response.text, 'html.parser')
-
-    # Extract secret (e.g., password)
-    password = soup.find('div', {'class': 'password'}).get_text().strip()
-
-    # Store password as a Lambda environment variable
-    os.environ['SECRET_PASSWORD'] = password  # Save it to Lambda env var
-
-    return {
-        'statusCode': 200,
-        'body': f"Password extracted and stored: {password}"
-    }
-6. Hardhat Configuration for Ethereum Deployment
-Add this to your hardhat.config.js for Ethereum deployment:
-
-javascript
-Copy
-Edit
-require('@nomiclabs/hardhat-waffle');
-require('@nomiclabs/hardhat-ethers');
-require('dotenv').config();
-
-module.exports = {
-  solidity: "0.8.0",
-  networks: {
-    rinkeby: {
-      url: process.env.INFURA_URL, // Infura URL
-      accounts: [process.env.PRIVATE_KEY], // Private key for the deployer
-    },
-  },
-  etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY,  // Your Etherscan API key
-  },
-};
-7. Deployment Script for Hardhat (scripts/deploy.js)
-Use this script to deploy the SnootyToken contract.
-
-javascript
-Copy
-Edit
-const hre = require("hardhat");
-
-async function main() {
-    const [deployer] = await hre.ethers.getSigners();
-    console.log("Deploying with account:", deployer.address);
-
-    const MedievalVault = "0xYourVaultAddress"; // Replace with your medieval vault address
-
-    const Token = await hre.ethers.getContractFactory("SnootyToken");
-    const token = await Token.deploy(MedievalVault);
-
-    console.log("SnootyToken deployed to:", token.address);
-}
-
-main()
-  .then(() => process.exit(0))
-  .catch((error) => {
-    console.error(error);
-    process.exit(1);
-  });
-8. PowerShell Command for Deployment
-Use this PowerShell command to deploy the contract to the specified network:
-
 bash
 Copy
 Edit
 powershell -Command "npx hardhat run scripts/deploy.js --network rinkeby"
-9. Python Automation with QuickNode
-Automate interactions with QuickNode API in Python:
-
 python
 Copy
 Edit
@@ -268,16 +279,10 @@ response = requests.post(api_url, json={'data': processed_data})
 
 result = response.json()
 print(result)
-10. Etherscan Contract Verification Integration
-To verify the contract on Etherscan, modify hardhat.config.js and use this command:
-
 bash
 Copy
 Edit
 npx hardhat verify --network rinkeby <YOUR_CONTRACT_ADDRESS> --constructor-args <ARGUMENTS>
-11. Frontend Integration
-Create a simple HTML page to interact with the FastAPI backend:
-
 html
 Copy
 Edit
