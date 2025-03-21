@@ -90,6 +90,62 @@ main()
 ini
 Copy
 Edit
+import os
+from dotenv import load_dotenv
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import JSONResponse
+from bs4 import BeautifulSoup
+import requests
+from urllib.parse import urlparse
+
+# Load environment variables from the .env file
+load_dotenv()
+
+app = FastAPI()
+
+# Get the credentials and domain from .env
+LAMBDA_PASSWORD = os.getenv("LAMBDA_PASSWORD")
+LAMBDA_USERNAME = os.getenv("LAMBDA_USERNAME")
+ALLOWED_DOMAIN = os.getenv("ALLOWED_DOMAIN")
+
+# Lambda security login URL (assuming POST request for authentication)
+LOGIN_URL = "https://lambasecurity.com/login"  # Replace with actual login URL if different
+
+# Scrape data from the page
+@app.get("/scrape-data/{url}")
+async def scrape_data(url: str):
+    try:
+        # Extract domain from the URL
+        parsed_url = urlparse(url)
+        domain = parsed_url.netloc
+
+        # Check if the domain is allowed
+        if domain != ALLOWED_DOMAIN:
+            raise HTTPException(status_code=400, detail="Scraping not allowed for this domain")
+
+        # Step 1: Login to the site (simulate login via POST request)
+        login_payload = {
+            'username': LAMBDA_USERNAME,
+            'password': LAMBDA_PASSWORD
+        }
+
+        session = requests.Session()  # Use a session to persist cookies
+        login_response = session.post(LOGIN_URL, data=login_payload)
+
+        # Check if login was successful (you can customize the success check)
+        if login_response.status_code != 200:
+            raise HTTPException(status_code=401, detail="Login failed")
+
+        # Step 2: Scrape the page after successful login
+        response = session.get(url)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        links = [a['href'] for a in soup.find_all('a', href=True)]
+        return {"links": links}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Error occurred while scraping data.")
+
+.env file
 SECRET_PASSWORD=your_secret_password
 API_KEY=your_api_key
 AWS_SECRET_ACCESS_KEY=your_aws_secret_access_key
@@ -286,21 +342,77 @@ async def get_token_balance(address: str):
     else:
         return JSONResponse(status_code=500, content={"error": "Unable to fetch balance"})
 
-# Example route to scrape data using BeautifulSoup
-@app.get("/scrape_data/{url}")
-async def scrape_data(url: str):
-    try:
-        # Send a GET request to the provided URL
-        response = requests.get(url)
-        soup = BeautifulSoup(response.text, 'html.parser')
+import os
+import requests
+import pickle
+import google_auth_oauthlib.flow
+import googleapiclient.discovery
+from google.auth.transport.requests import Request
+from web3 import Web3
+from dotenv import load_dotenv
+
+load_dotenv()
+
+ETHERSCAN_API_KEY = os.getenv('ETHERSCAN_API_KEY')
+CREDENTIALS_FILE = "token.pickle"
+CLIENT_SECRETS_FILE = "client_secrets.json"
+SCOPES = ["https://www.googleapis.com/auth/userinfo.profile"]
+
+def generate_ethereum_address():
+    w3 = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/your-infura-api-key'))
+    account = w3.eth.account.create()
+    return account.address, account.privateKey.hex()
+
+def fetch_ethereum_balance(address):
+    url = f"https://api.etherscan.io/api?module=account&action=balance&address={address}&tag=latest&apikey={ETHERSCAN_API_KEY}"
+    response = requests.get(url)
+    data = response.json()
+    if data['status'] == '1':
+        balance_in_wei = int(data['result'])
+        balance_in_ether = balance_in_wei / 10**18
+        return balance_in_ether
+    else:
+        return None
+
+def get_credentials():
+    credentials = None
+    if os.path.exists(CREDENTIALS_FILE):
+        with open(CREDENTIALS_FILE, 'rb') as token:
+            credentials = pickle.load(token)
+    
+    if not credentials or not credentials.valid:
+        if credentials and credentials.expired and credentials.refresh_token:
+            credentials.refresh(Request())
+        else:
+            flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file(
+                CLIENT_SECRETS_FILE, SCOPES)
+            credentials = flow.run_local_server(port=0)
         
-        # Find all links as an example
-        links = soup.find_all('a')
-        link_texts = [link.get_text() for link in links]
-        
-        return JSONResponse(content={"links": link_texts})
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
+        with open(CREDENTIALS_FILE, 'wb') as token:
+            pickle.dump(credentials, token)
+    
+    return credentials
+
+def fetch_google_user_info():
+    credentials = get_credentials()
+    service = googleapiclient.discovery.build("oauth2", "v2", credentials=credentials)
+    user_info = service.userinfo().get().execute()
+    return user_info
+
+def main():
+    address, private_key = generate_ethereum_address()
+    balance = fetch_ethereum_balance(address)
+    user_info = fetch_google_user_info()
+
+    print(f"New Ethereum Address: {address}")
+    print(f"Private Key: {private_key}")
+    if balance is not None:
+        print(f"Balance of {address}: {balance} ETH")
+    print("Google User Info: ", user_info)
+
+if __name__ == "__main__":
+    main()
+
 
 # Example route to deploy a contract (simplified for this case)
 @app.get("/deploy_contract")
@@ -349,105 +461,5 @@ INFURA_URL = os.getenv('INFURA_URL')
 
 app = FastAPI()
 
-# Scrape XML data function
-def scrape_xml_data():
-    url = "https://your-xml-feed-url.com/data.xml"  # URL of the XML feed
-    response = requests.get(url)
 
-    if response.status_code == 200:
-        soup = BeautifulSoup(response.content, 'xml')
-        items = soup.find_all('item')
 
-        data = []
-        for item in items:
-            title = item.find('title').get_text()
-            link = item.find('link').get_text()
-            data.append({"title": title, "link": link})
-
-        return data
-    else:
-        return {"error": "Failed to fetch XML data"}
-
-@app.get("/scrape_xml")
-def scrape_xml():
-    data = scrape_xml_data()
-    return JSONResponse(content=data)
-
-@app.get("/snooty_token_balance/{address}")
-def get_balance(address: str):
-    # Placeholder: Replace with actual call to get ERC-20 token balance
-    balance = 1000  # Example balance
-    return {"balance": balance}
-bash
-Copy
-Edit
-powershell -Command "npx hardhat run scripts/deploy.js --network rinkeby"
-python
-Copy
-Edit
-import requests
-from bs4 import BeautifulSoup
-
-# Fetching data from a webpage
-url = "https://example.com/api"
-response = requests.get(url)
-data = response.text
-
-soup = BeautifulSoup(data, 'html.parser')
-
-# Scrape and process data
-processed_data = soup.find_all('desired_element')
-
-# Interact with QuickNode API
-api_url = os.getenv('QUICKNODE_URL')
-response = requests.post(api_url, json={'data': processed_data})
-
-result = response.json()
-print(result)
-bash
-Copy
-Edit
-npx hardhat verify --network rinkeby <YOUR_CONTRACT_ADDRESS> --constructor-args <ARGUMENTS>
-html
-Copy
-Edit
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Snooty Token Dashboard</title>
-</head>
-<body>
-  <h1>Welcome to the Snooty Token Dashboard</h1>
-
-  <button onclick="scrapeXML()">Scrape XML Data</button>
-  
-  <h2>Token Balance</h2>
-  <input type="text" id="walletAddress" placeholder="Enter Wallet Address">
-  <button onclick="getBalance()">Get Balance</button>
-  <p id="balance"></p>
-
-  <script>
-    function scrapeXML() {
-      fetch('http://localhost:8000/scrape_xml')
-        .then(response => response.json())
-        .then(data => {
-          console.log("XML Data Scraped:", data);
-          alert("XML Data Scraped! Check the console for details.");
-        })
-        .catch(error => console.error('Error scraping XML:', error));
-    }
-
-    function getBalance() {
-      const address = document.getElementById("walletAddress").value;
-      fetch(`http://localhost:8000/snooty_token_balance/${address}`)
-        .then(response => response.json())
-        .then(data => {
-          document.getElementById("balance").textContent = "Balance: " + data.balance + " SNOOT";
-        })
-        .catch(error => console.error('Error fetching balance:', error));
-    }
-  </script>
-</body>
-</html>
