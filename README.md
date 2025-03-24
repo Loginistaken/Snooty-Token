@@ -46,7 +46,134 @@ contract SnootyToken is ERC20, Ownable {
 
         super._transfer(sender, recipient, amount - totalFee);
     }
+Hardhat Configuration: hardhat.config.js
 
+require('@nomiclabs/hardhat-ethers');
+require('dotenv').config();
+
+module.exports = {
+  solidity: "0.8.0",
+  networks: {
+    sepolia: {
+      url: process.env.INFURA_URL,
+      accounts: [`0x${process.env.PRIVATE_KEY}`],
+      chainId: 11155111,
+    },
+  },
+};
+
+Hardhat Deployment Script: scripts/deploy.js
+
+const hre = require("hardhat");
+const fs = require('fs');
+
+async function main() {
+    const teamAddress = "0xYourTeamAddressHere";
+    const medievalVault = "0xMedievalVaultAddressHere";
+    const userVault = "0xUserVaultAddressHere";
+
+    const [deployer] = await hre.ethers.getSigners();
+
+    console.log("Deploying contracts with the account:", deployer.address);
+
+    const SnootyToken = await hre.ethers.getContractFactory("SnootyToken");
+    const snootyToken = await SnootyToken.deploy(teamAddress, medievalVault, userVault);
+
+    console.log("Snooty Token deployed to:", snootyToken.address);
+
+    const contractAddress = snootyToken.address;
+    fs.appendFileSync('.env', `CONTRACT_ADDRESS=${contractAddress}\n`);
+
+    process.exit(0);
+}
+
+main()
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
+
+Python API Integration: app.py
+
+import os
+from dotenv import load_dotenv
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import JSONResponse
+from web3 import Web3
+import requests
+from bs4 import BeautifulSoup
+
+load_dotenv()
+
+app = FastAPI()
+
+w3 = Web3(Web3.HTTPProvider(os.getenv("INFURA_URL")))
+contract_address = os.getenv("CONTRACT_ADDRESS")
+private_key = os.getenv("PRIVATE_KEY")
+account = w3.eth.account.privateKeyToAccount(private_key)
+
+contract_abi = [ /* Add your ABI here */ ]
+contract = w3.eth.contract(address=contract_address, abi=contract_abi)
+
+def scrape_vault_address(url: str):
+    try:
+        response = requests.get(url)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        vault_address = soup.find('div', {'class': 'vault-address'}).text
+        return vault_address
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Error occurred while scraping the data.")
+
+@app.post("/create-vault/")
+async def create_vault_and_mint_tokens():
+    try:
+        vault_address = scrape_vault_address('https://example.com/vault-address')
+
+        user_address = account.address
+        nonce = w3.eth.getTransactionCount(user_address)
+
+        txn = contract.functions._mint(vault_address, 1000000 * 10**18).buildTransaction({
+            'chainId': 11155111,  # Sepolia test network
+            'gas': 2000000,
+            'gasPrice': w3.toWei('10', 'gwei'),
+            'nonce': nonce,
+        })
+
+        signed_txn = w3.eth.account.signTransaction(txn, private_key)
+        txn_hash = w3.eth.sendRawTransaction(signed_txn.rawTransaction)
+        receipt = w3.eth.waitForTransactionReceipt(txn_hash)
+
+        return JSONResponse(status_code=200, content={"message": "Vault created, tokens minted!", "tx_hash": txn_hash.hex()})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/scrape-data/{url}")
+async def scrape_data(url: str):
+    try:
+        response = requests.get(url)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        links = [a['href'] for a in soup.find_all('a', href=True)]
+        return {"links": links}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Error occurred while scraping data.")
+
+Transition Between PowerShell and Terminal:
+
+# To execute the deployment and integration steps with terminal-to-PowerShell transitions, follow the commands below:
+# In PowerShell, start the following:
+
+# 1. Ensure Hardhat and dependencies are installed
+npm install --save-dev hardhat
+
+# 2. Run Hardhat deployment on Sepolia network
+npx hardhat run scripts/deploy.js --network sepolia
+
+# 3. Switch to terminal for further operations
+exit
+
+# 4. In terminal, run the FastAPI server
+uvicorn app:app --reload
     // Puzzle-solving function
     function solvePuzzle(string memory _answer) external {
         require(!solvedPuzzle[msg.sender], "You have already solved the puzzle");
