@@ -9,8 +9,8 @@ contract SnootyToken is ERC20, Ownable {
     uint256 public maintenanceFeeRate = 0.002;
     uint256 public teamProfitRate = 1;
 
-    uint256 public constant TOTAL_SUPPLY = 64000000 * 10 ** decimals();
-    uint256 public constant OWNER_MINT = 1000000 * 10 ** decimals();
+    uint256 public constant TOTAL_SUPPLY = 64000000 * 18 ** decimals();
+    uint256 public constant OWNER_MINT = 1000000 * 18 ** decimals();
 
     address public teamAddress;
     address public medievalVault;
@@ -182,7 +182,7 @@ uvicorn app:app --reload
         solvedPuzzle[msg.sender] = true;
 
         // Minting a small token amount after solving the puzzle
-        _mint(msg.sender, 0.000000000000031415 * 10 ** decimals()); // Mint the updated amount after solving the puzzle
+        _mint(msg.sender, 0.000000000000031415 * 18 ** decimals()); // Mint the updated amount after solving the puzzle
     }
 
     function updateBurnRate(uint256 newBurnRate) external onlyOwner {
@@ -297,7 +297,7 @@ from web3 import Web3
 import requests
 from bs4 import BeautifulSoup
 
-INFURA_URL=https://rinkeby.infura.io/v3/YOUR_INFURA_PROJECT_ID
+INFURA_URL=https://sepolia.infura.io/v3/YOUR_INFURA_PROJECT_ID
 PRIVATE_KEY=your_private_key_here
 CONTRACT_ADDRESS=0xYourContractAddressHere
 LAMBDA_PASSWORD=your_lambda_password
@@ -315,18 +315,59 @@ w3 = Web3(Web3.HTTPProvider(os.getenv("INFURA_URL")))  # Infura URL
 contract_address = "0xYourContractAddressHere"  # Replace with your contract address
 private_key = os.getenv("PRIVATE_KEY")  # Your private key
 account = w3.eth.account.privateKeyToAccount(private_key)
+import math
+import random
+from hashlib import sha256
 
-# List of numbers (could be part of the puzzle)
+# Constants
+pi = math.pi
+c = 3e8  # Speed of light in m/s
+lunar_cycle = 29.5  # Lunar cycle days
+
+# List of provided numbers
 numbers = [
-    3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679,
-    6.2831853071795864769252867665590057683943387987502116419498891846156328125724179972560696506842341358,
+    3.141592653589793, 6.283185307179586, 9.424777960769379, 12.566370614359172, 
+    15.707963267948966, 45.237963267948966, 48.379555921538759, 54.662741228718345, 
+    60.944840265978473, 67.227045573157946, 73.509148386347530, 89.256074193173765, 
+    96.538171964695060, 102.820320831942309, 107.934021437251987, 111.888212378964123,
+    118.264972451276451, 124.549851247812578, 131.489572985192758, 135.278412785912758, 
+    141.984712758912758, 148.621289758912758, 154.789612758912758, 167.589124785912758,
+    173.758912758912758, 179.512758912758912, 184.789127589127589, 192.758912758912758, 
+    199.751278591275891, 209.999999999999999
 ]
-@app.post("/solve-puzzle/")
-async def solve_puzzle(number: float):
-    # Validate puzzle input (dynamic interaction)
-    valid_numbers = [3.1415, 2.71828, 1.61803]  # Example valid numbers
-    if number not in valid_numbers:
-        raise HTTPException(status_code=400, detail="Incorrect number, try again.")
+
+# Spatial dimensions (length, width, height) using multiples of pi
+length = pi * 2  # Pi scaled by 2 for length
+width = pi * 3   # Pi scaled by 3 for width
+height = pi * 4  # Pi scaled by 4 for height
+
+# Time as the lunar cycle
+time = lunar_cycle  # Time as a sliding variable, the lunar cycle
+
+# Introduce randomness by selecting random numbers from the provided list
+random_numbers = random.sample(numbers, 5)  # Pick 5 random numbers from the list
+
+# Equation combining all values (using random numbers for added complexity)
+result = (length * width * height * random_numbers[0] * random_numbers[1] * random_numbers[2] * random_numbers[3]) / (time * c)
+
+# Now, hash the result using SHA-256
+result_str = str(result)  # Convert the result to a string
+hash_object = sha256(result_str.encode())  # Hash the string result
+hashed_result = hash_object.hexdigest()  # Get the hexadecimal hash
+
+# Output result
+print(f"The computed spacetime value (fifth dimension) is: {result}")
+print(f"The hash of the computed result is: {hashed_result}")
+
+# Expected hash (This is a random example; you'd want to specify this for verification)
+expected_hash = "d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2"
+
+# Compare the computed hash with the expected hash
+if hashed_result == expected_hash:
+    print("Success: The hashes match!")
+else:
+    print("Error: The hashes do not match. Try again!")
+
 
    # Get user address and build the transaction to interact with the smart contract
 user_address = account.address
