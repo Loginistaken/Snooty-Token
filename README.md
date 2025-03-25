@@ -271,13 +271,13 @@ require('dotenv').config();
 module.exports = {
   solidity: "0.8.0",
   networks: {
-    rinkeby: {
-      url: process.env.INFURA_URL,
-      accounts: [`0x${process.env.PRIVATE_KEY}`]
-    }
-  }
+    sepolia: {
+      url: process.env.INFURA_URL, // Infura URL for Sepolia
+      accounts: [`0x${process.env.PRIVATE_KEY}`], // Private key from .env
+      chainId: 11155111, // Sepolia chain ID
+    },
+  },
 };
-
 Python Backend (FastAPI with Google Cloud Lambda & Secret Management)
 
 import os
