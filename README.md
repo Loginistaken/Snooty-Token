@@ -30,6 +30,85 @@ contract SnootyToken is ERC20, Ownable {
 
         teamAddress = _teamAddress;
     }
+#!/bin/bash
+
+# SPDX-License-Identifier: GPL-3.0
+# Ensure dependencies are installed
+echo "Checking dependencies..."
+npm install
+
+# Load environment variables
+source .env
+
+# Define variables
+TEAM_ADDRESS="0xYourTeamAddressHere"
+MEDIEVAL_VAULT="0xMedievalVaultAddressHere"
+USER_VAULT="0xUserVaultAddressHere"
+
+# Check if INFURA URL and private key are set in .env
+if [[ -z "$INFURA_URL" || -z "$PRIVATE_KEY" ]]; then
+  echo "Error: INFURA_URL or PRIVATE_KEY is not set in .env file."
+  exit 1
+fi
+
+# Deploy the contract via Hardhat
+echo "Deploying the contract..."
+npx hardhat run --network sepolia scripts/deploy.js
+
+# Store contract address in .env after deployment
+DEPLOYED_CONTRACT_ADDRESS=$(npx hardhat run --network sepolia scripts/deploy.js | grep -oP "(?<=Snooty Token deployed to: )(0x[a-fA-F0-9]{40})")
+echo "CONTRACT_ADDRESS=$DEPLOYED_CONTRACT_ADDRESS" >> .env
+
+# Run post-deployment PowerShell script
+echo "Running post-deployment PowerShell script..."
+powershell.exe -File ./scripts/postDeploy.ps1
+
+# Exit the script
+echo "Deployment completed successfully. Exiting..."
+exit 0
+const hre = require("hardhat");
+const fs = require('fs');
+
+async function main() {
+    // Addresses for team, medieval vault, and user vault
+    const teamAddress = "0xYourTeamAddressHere";
+    const medievalVault = "0xMedievalVaultAddressHere";
+    const userVault = "0xUserVaultAddressHere";
+
+    const [deployer] = await hre.ethers.getSigners();
+    console.log("Deploying contracts with the account:", deployer.address);
+
+    const SnootyToken = await hre.ethers.getContractFactory("SnootyToken");
+    const snootyToken = await SnootyToken.deploy(teamAddress, medievalVault, userVault);
+
+    console.log("Snooty Token deployed to:", snootyToken.address);
+
+    // Save contract address in .env
+    fs.appendFileSync('.env', `CONTRACT_ADDRESS=${snootyToken.address}\n`);
+
+    return snootyToken;
+}
+
+main()
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
+# Example Post Deployment PowerShell Script
+
+Write-Host "Post-deployment script started..."
+
+# Perform actions like notifying the team, or triggering other processes
+Write-Host "Notifying team about the contract deployment..."
+# (For example, send an email, API call, etc.)
+
+# You could also add logic to interact with your smart contract
+# For example, interacting with the contract via web3.js or ethers.js
+
+Write-Host "Post-deployment actions completed."
+
+# End of script
 
     function _transfer(address sender, address recipient, uint256 amount) internal override {
         uint256 burnAmount = (amount * burnRate) / 100;
