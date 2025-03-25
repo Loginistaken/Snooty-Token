@@ -9,8 +9,8 @@ contract SnootyToken is ERC20, Ownable {
     uint256 public maintenanceFeeRate = 0.002;
     uint256 public teamProfitRate = 1;
 
-    uint256 public constant TOTAL_SUPPLY = 64000000 * 18 ** decimals();
-    uint256 public constant OWNER_MINT = 1000000 * 18 ** decimals();
+   int256 public constant TOTAL_SUPPLY = 64000000 * 10 ** 18;
+    uint256 public constant OWNER_MINT = 1000000 * 10 ** 18;
 
     address public teamAddress;
     address public medievalVault;
@@ -46,6 +46,7 @@ contract SnootyToken is ERC20, Ownable {
 
         super._transfer(sender, recipient, amount - totalFee);
     }
+    
 Hardhat Configuration: hardhat.config.js
 
 require('@nomiclabs/hardhat-ethers');
@@ -62,10 +63,9 @@ module.exports = {
   },
 };
 
-Hardhat Deployment Script: scripts/deploy.js
-
 const hre = require("hardhat");
 const fs = require('fs');
+const { exec } = require("child_process");
 
 async function main() {
     const teamAddress = "0xYourTeamAddressHere";
@@ -73,7 +73,6 @@ async function main() {
     const userVault = "0xUserVaultAddressHere";
 
     const [deployer] = await hre.ethers.getSigners();
-
     console.log("Deploying contracts with the account:", deployer.address);
 
     const SnootyToken = await hre.ethers.getContractFactory("SnootyToken");
@@ -81,19 +80,23 @@ async function main() {
 
     console.log("Snooty Token deployed to:", snootyToken.address);
 
-    const contractAddress = snootyToken.address;
-    fs.appendFileSync('.env', `CONTRACT_ADDRESS=${contractAddress}\n`);
+    // Store contract address in .env
+    fs.appendFileSync('.env', `CONTRACT_ADDRESS=${snootyToken.address}\n`);
+
+    // Auto-exit & trigger PowerShell script
+    exec("powershell.exe -File .\\scripts\\postDeploy.ps1", (err, stdout, stderr) => {
+        if (err) console.error(`Error: ${err.message}`);
+        if (stderr) console.error(`PowerShell Error: ${stderr}`);
+        console.log(`PowerShell Output: ${stdout}`);
+    });
 
     process.exit(0);
 }
 
-main()
-  .then(() => process.exit(0))
-  .catch((error) => {
+main().catch(error => {
     console.error(error);
     process.exit(1);
-  });
-
+});
 Python API Integration: app.py
 
 import os
