@@ -109,6 +109,8 @@ Write-Host "Notifying team about the contract deployment..."
 Write-Host "Post-deployment actions completed."
 
 # End of script
+npm install -g slither
+slither contracts/SnootyToken.sol
 
     function _transfer(address sender, address recipient, uint256 amount) internal override {
         uint256 burnAmount = (amount * burnRate) / 100;
@@ -264,7 +266,7 @@ uvicorn app:app --reload
         solvedPuzzle[msg.sender] = true;
 
         // Minting a small token amount after solving the puzzle
-        _mint(msg.sender, 0.000000000000031415 * 18 ** decimals()); // Mint the updated amount after solving the puzzle
+        _mint(msg.sender, 0.314150000000000000 * 18 ** decimals()); // Mint the updated amount after solving the puzzle
     }
 
     function updateBurnRate(uint256 newBurnRate) external onlyOwner {
