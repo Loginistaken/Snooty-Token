@@ -19,7 +19,7 @@ contract SnootyToken is ERC20, Ownable {
     string public puzzleAnswer = "defaultPuzzleAnswer"; // Placeholder for the puzzle answer
     mapping(address => bool) public solvedPuzzle;
 
-    constructor(address _teamAddress, address _medievalVault, address _userVault) ERC20("Snooty Token", "SFT") {
+    constructor(address _teamAddress, address _medievalVault, address _userVault) ERC20("Snooty Token", "SNFT") {
         _mint(msg.sender, TOTAL_SUPPLY - OWNER_MINT);
 
         medievalVault = _medievalVault;
