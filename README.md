@@ -402,14 +402,24 @@ async def solve_puzzle(number: float):
     if number not in numbers:
         raise HTTPException(status_code=400, detail="Incorrect number, try again.")
 
-    # Get user address and build the transaction to interact with the smart contract
-    user_address = account.address
-    nonce = w3.eth.getTransactionCount(user_address)
-    txn = contract.functions.solvePuzzle().buildTransaction({
-        'chainId': 4,  # Rinkeby test network (use 1 for mainnet)
-        'gas': 2000000,
-        'gasPrice': w3.toWei('10', 'gwei'),
-        'nonce': nonce,
+   # Get user address and build the transaction to interact with the smart contract
+user_address = account.address
+nonce = w3.eth.getTransactionCount(user_address)
+txn = contract.functions.solvePuzzle().buildTransaction({
+    'chainId': 11155111,  # Sepolia test network
+    'gas': 2000000,
+    'gasPrice': w3.toWei('10', 'gwei'),
+    'nonce': nonce,
+})
+
+# Sign the transaction and send it
+signed_txn = w3.eth.account.signTransaction(txn, private_key)
+txn_hash = w3.eth.sendRawTransaction(signed_txn.rawTransaction)
+
+# Wait for the transaction receipt
+receipt = w3.eth.waitForTransactionReceipt(txn_hash)
+
+return JSONResponse(status_code=200, content={"message": "Puzzle solved, tokens minted!", "tx_hash": txn_hash.hex()})
     })
 
     # Sign the transaction and send it
@@ -550,7 +560,8 @@ echo "Setting up environment variables..."
 source setup_environment.sh
 
 echo "Deploying the contract..."
-npx hardhat run --network rinkeby scripts/deploy.js
+npx hardhat run --network sepolia scripts/deploy.js
+
 
 echo "Running tests..."
 npx hardhat test
