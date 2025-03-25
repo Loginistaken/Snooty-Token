@@ -599,6 +599,127 @@ export SECRET_KEY="your_secret_key_for_encryption"
     // 5. Safe Burn Rate: The burn rate is limited to a maximum of 50% to ensure safe tokenomics.
     // 6. Puzzle Answer: The puzzle answer "42" can be changed as needed.
     // 7. Legal Acknowledgment: Acknowledgment for burn rate and its limits.
+    <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snooty Token Legal Agreement</title>
+    <style>
+        /* Modal Styles */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1; 
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0, 0, 0); 
+            background-color: rgba(0, 0, 0, 0.4);
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 800px;
+            overflow-y: auto;
+            height: 80%;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- Trigger Button -->
+    <button id="showModalBtn">View Snooty Token Legal Agreement</button>
+
+    <!-- Modal Structure -->
+    <div id="legalModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Snooty Token Legal Agreement</h2>
+            <p><strong>Version 1.0</strong></p>
+            <p>This Agreement ("Agreement") governs the rights, responsibilities, and legal obligations related to the use and ownership of the Snooty Token ("Token"). By interacting with the Token, users and owners agree to comply with the following terms and conditions.</p>
+
+            <h3>1. Ownership and Control Rights</h3>
+            <p><strong>1.1 Ownership Rights:</strong> The creator ("Owner") of the Token shall retain full ownership rights and control over the distribution, burn rate, and maintenance fees of the Token, as outlined in the contract. The Owner is responsible for ensuring the Token's integrity and governance, including the rights to mint additional tokens and adjust the burn rate.</p>
+            <p><strong>1.2 Burn Rate Control:</strong> The Owner reserves the right to change the Token’s burn rate up to a maximum of 50%. This is a configurable value within the Token contract. The Owner acknowledges that setting the burn rate beyond 50% may be detrimental to the Token's value and sustainability. It is understood that best practice suggests keeping the burn rate significantly lower than the maximum threshold to maintain a healthy ecosystem.</p>
+            <p><strong>1.3 Initial Minting and Vault Creation:</strong> The Owner is granted the right to mint the initial supply of the Token, totaling 64,000,000 tokens. Of this supply, 1,000,000 tokens will be reserved in a medieval vault for personal or discretionary use. The Owner also has the right to allocate specific tokens into other vaults, such as a user vault or team address, as per the code.</p>
+
+            <h3>2. Cryptographic Puzzle and Minting Rewards</h3>
+            <p><strong>2.1 Puzzle Mechanism:</strong> The Token contract includes a cryptographic puzzle-solving mechanism ("Puzzle"). To interact with the Token, users are required to solve a puzzle defined within the smart contract. Upon solving the puzzle, users are eligible to receive a mint reward. The mint reward is a small quantity of tokens minted and distributed to the user’s address. This reward is pre-defined in the contract and is issued upon the successful solution of the puzzle.</p>
+            <p><strong>2.2 Puzzle Answer:</strong> The puzzle answer is initially set by the Owner and stored in the contract. The Owner may update or change the answer to reflect new challenges or rewards. The challenge presented to users is cryptographically secure and verified within the smart contract. Users who provide the correct solution to the puzzle will trigger the minting of tokens to their address.</p>
+            <p><strong>2.3 Puzzle Answer Limitations:</strong> Users may only attempt the puzzle once. If a user successfully solves the puzzle, they will be recorded as having "solved" the puzzle, preventing further attempts. The Owner retains the right to modify the mechanics of the puzzle, the reward amount, or even remove the puzzle entirely.</p>
+
+            <h3>3. Burn Rate Acknowledgment and Changes</h3>
+            <p><strong>3.1 Burn Rate Modification:</strong> The burn rate of the Token may be modified by the Owner at any time, but it may never exceed 50% of the transaction value. This parameter is intended to control the deflationary effect of the Token. Any adjustment made will be documented and transparently communicated to all Token holders through the contract.</p>
+            <p><strong>3.2 Best Practice for Burn Rate:</strong> While the Owner may alter the burn rate, it is strongly recommended that the burn rate remain significantly below 50% to prevent excessive deflation. The burn rate above 10% is discouraged for long-term sustainability.</p>
+
+            <h3>4. API Scraping and Data Management</h3>
+            <p><strong>4.1 Google Cloud Integration:</strong> The Token contract interacts with external systems, including API scraping and Web3-based Ethereum interactions, via Google Cloud. This is done to gather data necessary for specific Token operations, including scraping vault addresses, interacting with contract data, and executing blockchain transactions.</p>
+            <p><strong>4.2 Web3 and Scraping Mechanism:</strong> The scraping process utilizes Web3 and is facilitated through the Google Cloud Lambda service. The information obtained via scraping is used for minting and updating vault addresses within the Token ecosystem. All actions are executed securely with user consent and according to the latest legal guidelines regarding data collection and privacy.</p>
+            <p><strong>4.3 Legal Compliance of API Usage:</strong> The scraping and API integrations comply with all relevant data protection and privacy laws, including GDPR and CCPA (as applicable). Data is used only for the purposes outlined in this contract and will not be shared with third parties without the user’s explicit consent. The Owner ensures the use of encryption and secure communication methods for all data transmission.</p>
+
+            <h3>5. Team Address and Profit Sharing</h3>
+            <p><strong>5.1 Team Address Control:</strong> The Owner has the right to define and update the team address within the contract. This address is used to distribute profit shares, and the contract allows for the transfer of specific profits from transactions to the team’s address. The distribution is controlled by the Owner and may be adjusted for operational needs.</p>
+            <p><strong>5.2 Profit Sharing Mechanism:</strong> A team profit rate is defined in the contract, which determines the portion of each transaction allocated to the team. This is set to 1% of each transaction. The Owner reserves the right to adjust this profit rate in the future, with the understanding that any changes must be clearly communicated to the community.</p>
+
+            <h3>6. General Disclaimer and Legal Limitations</h3>
+            <p><strong>6.1 No Liability:</strong> The Owner of the Token assumes no liability for any losses incurred by users as a result of interacting with the Token or participating in the cryptographic puzzle-solving process. Users are responsible for conducting their own due diligence and ensuring their participation aligns with all applicable local laws and regulations.</p>
+            <p><strong>6.2 Risk Acknowledgment:</strong> By using the Token, users acknowledge that the Token’s ecosystem, cryptographic puzzles, burn rate changes, and external API scraping mechanisms involve inherent risks. The Owner makes no representations or warranties about the performance or future value of the Token.</p>
+            <p><strong>6.3 Governing Law:</strong> This Agreement shall be governed by and construed in accordance with the laws of the jurisdiction in which the Owner resides, without regard to its conflict of law principles. Any disputes arising from this Agreement shall be resolved in the appropriate courts in the jurisdiction specified.</p>
+            <p><strong>6.4 Updates and Modifications:</strong> The Owner reserves the right to update or modify the terms of this Agreement at any time. Any such changes will be communicated through the appropriate channels, including direct notifications to users, smart contract updates, and official documentation.</p>
+
+            <h3>7. Licensing and Legal Considerations</h3>
+            <p><strong>7.1 Licensing:</strong> The Snooty Token code is released under the GNU General Public License v3.0 (GPL-3.0). By using this token, users agree to adhere to the GPL-3.0 terms. However, the Owner offers the option to negotiate a proprietary license for use in commercial projects that may not comply with the open-source requirements of the GPL.</p>
+            <p><strong>7.2 Ethereum Mining and Token Rights:</strong> This Agreement acknowledges the rights associated with mining Ethereum and ERC-20 tokens. While the smart contract operates within Ethereum's network, it cannot directly enforce real-world laws but will provide transparency regarding token rights and responsibilities. This includes maintaining proper burn rates, profit sharing, and governance as outlined in this agreement.</p>
+            <p><strong>7.3 Compliance with Ethereum Network Laws:</strong> Users of this contract should ensure they are compliant with the relevant laws governing Ethereum mining, ERC-20 tokens, and other blockchain-related activities in their jurisdiction.</p>
+
+        </div>
+    </div>
+    <script>
+        // Get the modal
+        var modal = document.getElementById("legalModal");
+        // Get the button that opens the modal
+        var btn = document.getElementById("showModalBtn");
+        // Get the <span> element that closes the modal
+        var span = document.getElementsByClassName("close")[0];
+        // When the user clicks the button, open the modal
+        btn.onclick = function() {
+            modal.style.display = "block";
+        }
+        // When the user clicks on <span> (x), close the modal
+        span.onclick = function() {
+            modal.style.display = "none";
+        }
+        // When the user clicks anywhere outside of the modal, close it
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>
+
 # Setup for contract deployment and testing
 echo "Setting up environment variables..."
 source setup_environment.sh
