@@ -388,6 +388,19 @@ LAMBDA_PASSWORD=your_lambda_password
 LAMBDA_USERNAME=your_lambda_username
 ALLOWED_DOMAIN=your_allowed_domain.com
 
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import JSONResponse
+from web3 import Web3
+from hashlib import sha256
+import math
+import random
+import os
+import requests
+from dotenv import load_dotenv
+from cryptography.fernet import Fernet
+from google.cloud import secretmanager
+from bs4 import BeautifulSoup
+
 # Load environment variables from .env file
 load_dotenv()
 
@@ -396,14 +409,11 @@ app = FastAPI()
 
 # Web3 setup for interacting with the Ethereum blockchain
 w3 = Web3(Web3.HTTPProvider(os.getenv("INFURA_URL")))  # Infura URL
-contract_address = "0xYourContractAddressHere"  # Replace with your contract address
+contract_address = os.getenv("CONTRACT_ADDRESS")  # Replace with your contract address
 private_key = os.getenv("PRIVATE_KEY")  # Your private key
 account = w3.eth.account.privateKeyToAccount(private_key)
-import math
-import random
-from hashlib import sha256
 
-# Constants
+# Constants for the puzzle (math and spacetime constants)
 pi = math.pi
 c = 3e8  # Speed of light in m/s
 lunar_cycle = 29.5  # Lunar cycle days
@@ -439,10 +449,6 @@ result_str = str(result)  # Convert the result to a string
 hash_object = sha256(result_str.encode())  # Hash the string result
 hashed_result = hash_object.hexdigest()  # Get the hexadecimal hash
 
-# Output result
-print(f"The computed spacetime value (fifth dimension) is: {result}")
-print(f"The hash of the computed result is: {hashed_result}")
-
 # Expected hash (This is a random example; you'd want to specify this for verification)
 expected_hash = "d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2"
 
@@ -452,99 +458,22 @@ if hashed_result == expected_hash:
 else:
     print("Error: The hashes do not match. Try again!")
 
-
-   # Get user address and build the transaction to interact with the smart contract
-user_address = account.address
-nonce = w3.eth.getTransactionCount(user_address)
-txn = contract.functions.solvePuzzle().buildTransaction({
-    'chainId': 11155111,  # Sepolia test network
-    'gas': 2000000,
-    'gasPrice': w3.toWei('10', 'gwei'),
-    'nonce': nonce,
-})
-
-# Sign the transaction and send it
-signed_txn = w3.eth.account.signTransaction(txn, private_key)
-txn_hash = w3.eth.sendRawTransaction(signed_txn.rawTransaction)
-
-# Wait for the transaction receipt
-receipt = w3.eth.waitForTransactionReceipt(txn_hash)
-
-return JSONResponse(status_code=200, content={"message": "Puzzle solved, tokens minted!", "tx_hash": txn_hash.hex()})
-
-    })
-
-    signed_txn = w3.eth.account.signTransaction(txn, private_key)
-    txn_hash = w3.eth.sendRawTransaction(signed_txn.rawTransaction)
-    receipt = w3.eth.waitForTransactionReceipt(txn_hash)
-
-    return JSONResponse(status_code=200, content={"message": "Puzzle solved, tokens minted!", "tx_hash": txn_hash.hex()})
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Snooty Token</title>
-</head>
-<body>
-    <h1>Snooty Token Info</h1>
-    <div id="token-info">
-        <p>Token Name: Snooty Token</p>
-        <p>Symbol: SFT</p>
-        <p>Balance: <span id="balance"></span></p>
-    </div>
-
-    <h2>Solve the Puzzle</h2>
-    <input type="number" id="puzzle-input" placeholder="Enter Number">
-    <button onclick="solvePuzzle()">Solve Puzzle</button>
-
-    <script>
-        async function solvePuzzle() {
-            const number = document.getElementById('puzzle-input').value;
-            const response = await fetch('/solve-puzzle/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ number: parseFloat(number) })
-            });
-            const data = await response.json();
-            alert(data.message);
-        }
-    </script>
-</body>
-</html>
-
-# Your contract ABI (replace with the actual ABI)
-contract_abi = [ /* Add the ABI of your contract here */ ]
-
-# Create contract instance
-contract = w3.eth.contract(address=contract_address, abi=contract_abi)
-
-# API to solve the puzzle by sending a correct number
+# API route to solve the puzzle
 @app.post("/solve-puzzle/")
 async def solve_puzzle(number: float):
     if number not in numbers:
         raise HTTPException(status_code=400, detail="Incorrect number, try again.")
 
-   # Get user address and build the transaction to interact with the smart contract
-user_address = account.address
-nonce = w3.eth.getTransactionCount(user_address)
-txn = contract.functions.solvePuzzle().buildTransaction({
-    'chainId': 11155111,  # Sepolia test network
-    'gas': 2000000,
-    'gasPrice': w3.toWei('10', 'gwei'),
-    'nonce': nonce,
-})
-
-# Sign the transaction and send it
-signed_txn = w3.eth.account.signTransaction(txn, private_key)
-txn_hash = w3.eth.sendRawTransaction(signed_txn.rawTransaction)
-
-# Wait for the transaction receipt
-receipt = w3.eth.waitForTransactionReceipt(txn_hash)
-
-return JSONResponse(status_code=200, content={"message": "Puzzle solved, tokens minted!", "tx_hash": txn_hash.hex()})
+    # Get user address and build the transaction to interact with the smart contract
+    user_address = account.address
+    nonce = w3.eth.getTransactionCount(user_address)
+    contract = w3.eth.contract(address=contract_address, abi=[ /* Add your ABI here */ ])
+    
+    txn = contract.functions.solvePuzzle().buildTransaction({
+        'chainId': 11155111,  # Sepolia test network
+        'gas': 2000000,
+        'gasPrice': w3.toWei('10', 'gwei'),
+        'nonce': nonce,
     })
 
     # Sign the transaction and send it
@@ -556,7 +485,7 @@ return JSONResponse(status_code=200, content={"message": "Puzzle solved, tokens 
 
     return JSONResponse(status_code=200, content={"message": "Puzzle solved, tokens minted!", "tx_hash": txn_hash.hex()})
 
-# API to scrape data from a given URL
+# API route to scrape data from a URL
 @app.get("/scrape-data/{url}")
 async def scrape_data(url: str):
     try:
@@ -567,7 +496,7 @@ async def scrape_data(url: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail="Error occurred while scraping data.")
 
-# API to check the token balance of an address
+# API route to check token balance of an address
 @app.get("/token_balance/{address}")
 async def get_token_balance(address: str):
     try:
@@ -576,20 +505,7 @@ async def get_token_balance(address: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail="Error occurred while fetching token balance.")
 
-
-# Initialize FastAPI
-app = FastAPI()
-
-# Encryption setup using Fernet
-SECRET_KEY = os.getenv("SECRET_KEY")
-cipher_suite = Fernet(SECRET_KEY)
-
-w3 = Web3(Web3.HTTPProvider(os.getenv("INFURA_URL")))
-contract_address = os.getenv("CONTRACT_ADDRESS")
-private_key = os.getenv("PRIVATE_KEY")
-account = w3.eth.account.privateKeyToAccount(private_key)
-
-# Google Cloud Secret Manager client
+# Google Cloud Secret Manager client for secure data handling
 def get_secret(secret_name):
     client = secretmanager.SecretManagerServiceClient()
     project_id = os.getenv('GOOGLE_CLOUD_PROJECT')
@@ -598,21 +514,14 @@ def get_secret(secret_name):
     secret_data = response.payload.data.decode('UTF-8')
     return secret_data
 
-# Decrypt environment variables securely
+# Encryption setup using Fernet for private key storage
+SECRET_KEY = os.getenv("SECRET_KEY")
+cipher_suite = Fernet(SECRET_KEY)
+
 def load_secure_env():
     encrypted_private_key = os.getenv("ENCRYPTED_PRIVATE_KEY")
     decrypted_private_key = cipher_suite.decrypt(encrypted_private_key.encode()).decode()
     return decrypted_private_key
-
-# Scrape vault address from a webpage
-def scrape_vault_address(url: str):
-    try:
-        response = requests.get(url)
-        soup = BeautifulSoup(response.text, 'html.parser')
-        vault_address = soup.find('div', {'class': 'vault-address'}).text
-        return vault_address
-    except Exception as e:
-        raise HTTPException(status_code=500, detail="Error occurred while scraping the data.")
 
 # API route to create a profile and mint tokens
 @app.post("/create-profile/")
@@ -622,8 +531,10 @@ async def create_profile():
         vault_address = scrape_vault_address('https://example.com/vault-address')
 
         nonce = w3.eth.getTransactionCount(user_address)
+        contract = w3.eth.contract(address=contract_address, abi=[ /* Add your ABI here */ ])
+
         txn = contract.functions._mint(vault_address, 1000000 * 10**18).buildTransaction({
-            'chainId': 4,
+            'chainId': 4,  # Rinkeby test network
             'gas': 2000000,
             'gasPrice': w3.toWei('10', 'gwei'),
             'nonce': nonce,
@@ -637,18 +548,7 @@ async def create_profile():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# API to scrape data from a URL
-@app.get("/scrape-data/{url}")
-async def scrape_data(url: str):
-    try:
-        response = requests.get(url)
-        soup = BeautifulSoup(response.text, 'html.parser')
-        links = [a['href'] for a in soup.find_all('a', href=True)]
-        return {"links": links}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail="Error occurred while scraping data.")
-
-# Encrypt and store environment variables
+# Encrypt and store environment variables securely
 def encrypt_and_store_env_variables():
     private_key = os.getenv("PRIVATE_KEY")
     encrypted_key = cipher_suite.encrypt(private_key.encode()).decode()
@@ -656,22 +556,11 @@ def encrypt_and_store_env_variables():
     with open(".env", "a") as env_file:
         env_file.write(f"ENCRYPTED_PRIVATE_KEY={encrypted_key}\n")
 
-Google Cloud Setup for Secure Management
+# Main entry to run the FastAPI app
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
 
-    Google Cloud KMS: Use Google Cloud Key Management to store the encryption key securely.
-
-    Secret Manager: Store the private key, encrypted tokens, and other sensitive information in Google Cloud Secret Manager.
-
-Shell Commands for Setup
-
-# Setting up environment variables
-export INFURA_API_KEY="your_infura_api_key"
-export QUICKNODE_API_KEY="your_quicknode_api_key"
-export CONTRACT_ADDRESS="your_contract_address"
-export ETH_PRIVATE_KEY="your_private_key"
-export GOOGLE_CLOUD_PROJECT="your_project_id"
-export SECRET_KEY="your_secret_key_for_encryption"
-// Steps Implementation
 
     // 1. Deploy and Setup: Deploy the contract with team, medieval, and user vault addresses.
     // 2. Puzzle Interaction: Users can solve the puzzle to mint tokens.
